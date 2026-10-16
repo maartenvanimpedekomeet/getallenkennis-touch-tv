@@ -1036,7 +1036,7 @@ function ensureSplitFill(){
   const t = state.split.target;
   let filled = 0;
   for(let i=0;i<state.size;i++){
-    if(i<t){ if(state.cells[i].color===0) state.cells[i].color=1; state.cells[i].crossed=false; filled++; }
+    if(i<t){ if(state.cells[i].color===0||state.cells[i].color===3) state.cells[i].color=1; state.cells[i].crossed=false; filled++; }
     else { state.cells[i].color=0; state.cells[i].crossed=false; }
   }
 }
