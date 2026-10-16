@@ -122,8 +122,9 @@
   .cell.dim{ opacity:.35; pointer-events:none; }
   .chip-el{ width:80%; height:80%; border-radius:50%; }
   .chip-el.c0{ border:3px dashed #c4ccd4; background:transparent; }
-  .chip-el.c1{ background:var(--red); border:3px solid var(--red-dark); }
-  .chip-el.c2{ background:var(--blue); border:3px solid var(--blue-dark); }
+  .chip-el.c1{ background:var(--blue); border:3px solid var(--blue-dark); }
+  .chip-el.c2{ background:var(--red); border:3px solid var(--red-dark); }
+  .chip-el.c3{ background:var(--blue); border:3px solid var(--blue-dark); }
   .cross-x{ position:absolute; inset:0; }
   .cross-x svg{ width:100%; height:100%; }
 
@@ -420,7 +421,7 @@ function renderCell(idx, interactive){
   cell.dataset.idx = idx;
   const chip = el('div','chip-el c'+data.color);
   cell.appendChild(chip);
-  if(data.crossed){
+  if(data.color===3 || data.crossed){
     cell.appendChild(crossOverlay());
   }
   if(!interactive){ cell.classList.add('locked'); }
@@ -442,7 +443,7 @@ function updateCellDom(idx){
   const data = state.cells[idx];
   cellEl.innerHTML='';
   cellEl.appendChild(el('div','chip-el c'+data.color));
-  if(data.crossed) cellEl.appendChild(crossOverlay());
+  if(data.color===3 || data.crossed) cellEl.appendChild(crossOverlay());
 }
 
 function onCellPointerDown(e){
@@ -454,9 +455,9 @@ function onCellPointerDown(e){
 function handleCellTap(idx){
   const cell = state.cells[idx];
   if(state.mode==='vrij'){
-    if(cell.crossed) cell.crossed=false;
     if(cell.color===0){ cell.color=1; sound.place(); }
     else if(cell.color===1){ cell.color=2; sound.turn(); }
+    else if(cell.color===2){ cell.color=3; sound.turn(); }
     else { cell.color=0; sound.remove(); }
     updateCellDom(idx);
   } else if(state.mode==='split'){
@@ -475,8 +476,8 @@ let dragEl = null, dragColor = null;
 function startDrag(color, clientX, clientY){
   dragColor = color;
   dragEl = el('div','drag-clone');
-  dragEl.style.background = color===1 ? getCss('--red') : getCss('--blue');
-  dragEl.style.border = '4px solid ' + (color===1?getCss('--red-dark'):getCss('--blue-dark'));
+  dragEl.style.background = color===1 ? getCss('--blue') : getCss('--red');
+  dragEl.style.border = '4px solid ' + (color===1?getCss('--blue-dark'):getCss('--red-dark'));
   document.body.appendChild(dragEl);
   moveDrag(clientX, clientY);
 }
@@ -508,7 +509,7 @@ function getCss(varName){ return getComputedStyle(document.documentElement).getP
 function wireTray(container){
   const red = container.querySelector('.tray-chip.red');
   const blue = container.querySelector('.tray-chip.blue');
-  [[red,1],[blue,2]].forEach(([elm,color])=>{
+  [[red,2],[blue,1]].forEach(([elm,color])=>{
     if(!elm) return;
     elm.addEventListener('pointerdown', (e)=>{
       e.preventDefault();
@@ -654,9 +655,9 @@ function renderVrij(){
 
   const sec2 = el('div','panel-section');
   sec2.appendChild(el('div','panel-title','Snelknoppen'));
-  const fill5 = el('button','btn','Vul 5 (rood)');
+  const fill5 = el('button','btn','Vul 5 (blauw)');
   fill5.addEventListener('click', ()=>{ quickFill(5); sound.ui(); });
-  const fill10 = el('button','btn','Vul 10 (rood)');
+  const fill10 = el('button','btn','Vul 10 (blauw)');
   fill10.addEventListener('click', ()=>{ quickFill(10); sound.ui(); });
   const clearAll = el('button','btn danger','Wis alles');
   clearAll.addEventListener('click', ()=>{ state.cells.forEach(c=>{c.color=0;c.crossed=false;}); sound.remove(); render(); });
@@ -1027,7 +1028,7 @@ function renderSplit(){
 
   const sec3 = el('div','panel-section');
   sec3.appendChild(el('div','panel-title','Uitleg'));
-  sec3.appendChild(el('div','hint','Het bord toont automatisch '+state.split.target+' fiches. Tik op een fiche om die van rood naar blauw te wisselen &#x2014; de splitsboom past zich meteen aan.'));
+  sec3.appendChild(el('div','hint','Het bord toont automatisch '+state.split.target+' fiches. Tik op een fiche om die van blauw naar rood te wisselen &#x2014; de splitsboom past zich meteen aan.'));
   sidebar.appendChild(sec3);
 }
 
@@ -1043,7 +1044,7 @@ function ensureSplitFill(){
 function renderSplitTree(){
   const t = state.split.target;
   let red=0, blue=0;
-  for(let i=0;i<t;i++){ if(state.cells[i].color===1) red++; else if(state.cells[i].color===2) blue++; }
+  for(let i=0;i<t;i++){ if(state.cells[i].color===2) red++; else if(state.cells[i].color===1) blue++; }
   const eq = document.getElementById('splitEq');
   if(eq) eq.textContent = t+' = '+red+' + '+blue;
   const tree = document.getElementById('splitTree');
@@ -1110,8 +1111,8 @@ function renderSommen(){
   const sec4 = el('div','panel-section');
   sec4.appendChild(el('div','panel-title','Uitleg'));
   const txt = state.sommen.op==='plus'
-    ? 'De eerste term staat al in het rood. Tik op lege vakjes om er blauwe fiches bij te leggen tot je de som hebt uitgebeeld.'
-    : 'Het totaal staat in het rood. Tik op rode fiches om ze weg te strepen (aftrekken). Wat overblijft is het antwoord.';
+    ? 'De eerste term staat al in het blauw. Tik op lege vakjes om er rode fiches bij te leggen tot je de som hebt uitgebeeld.'
+    : 'Het totaal staat in het blauw. Tik op blauwe fiches om ze weg te strepen (aftrekken). Wat overblijft is het antwoord.';
   sec4.appendChild(el('div','hint', txt));
   sidebar.appendChild(sec4);
 }
